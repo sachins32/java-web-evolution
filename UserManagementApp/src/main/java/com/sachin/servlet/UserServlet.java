@@ -8,44 +8,79 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet("/users") // This tells Tomcat to send any request to /users here
+@WebServlet("/users/*") // The asterisk allows us to handle /users/1, /users/delete, etc.
 public class UserServlet extends HttpServlet {
 
-    // Our "In-Memory" Database
-    private List<User> userList = new ArrayList();
+    private List<User> userList = new ArrayList<>();
 
     @Override
     public void init() {
-        // Pre-fill with one user so it's not empty
-        userList.add(new User(1, "Sachin", "sachin@gmail.com"));
+        userList.add(new User(1, "Ubuntu", "linux@ubuntu.com"));
     }
 
-    // GET: Fetch all users or one user
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/html");
-        PrintWriter out = resp.getWriter();
-
-        out.println("<h1>User List</h1>");
-        for(User u : userList) {
-            out.println("<p>ID: " + u.getId() + " | Name: " + u.getName() + " | Email: " + u.getEmail() + "</p>");
-        }
-        out.println("<a href='index.html'>Back to Home</a>");
+    // 1. READ (All or Single)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+        // For this basic version, we just forward to a display logic
+        req.setAttribute("users", userList);
+        req.getRequestDispatcher("/displayUsers.jsp").forward(req, resp);
     }
 
-    // POST: Save a new user
+    // 2. CREATE
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        int id = userList.size() + 1;
         String name = req.getParameter("name");
         String email = req.getParameter("email");
+        int id = userList.isEmpty() ? 1 : userList.get(userList.size() - 1).getId() + 1;
 
         userList.add(new User(id, name, email));
-        resp.sendRedirect("users"); // Go back to the list
+        resp.sendRedirect(req.getContextPath() + "/users");
     }
+
+    // This method intercepts EVERY request before doGet/doPost
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String method = req.getParameter("_method");
+
+        if ("DELETE".equalsIgnoreCase(method)) {
+            doDelete(req, resp);
+        } else if ("PUT".equalsIgnoreCase(method)) {
+            doPut(req, resp);
+        } else {
+            // If no special method, let the standard service() handle GET/POST
+            super.service(req, resp);
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        int id = Integer.parseInt(req.getParameter("userId"));
+
+        // Remove user from list by ID
+        userList.removeIf(user -> user.getId() == id);
+
+        // Redirect back to the list
+        resp.sendRedirect("users");
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        int id = Integer.parseInt(req.getParameter("userId"));
+        String newName = req.getParameter("name");
+        String newEmail = req.getParameter("email");
+
+        // Find user and update
+        for (User u : userList) {
+            if (u.getId() == id) {
+                u.setName(newName);
+                u.setEmail(newEmail);
+                break;
+            }
+        }
+        resp.sendRedirect("users");
+    }
+}
 
     // NOTE: HTML Forms don't support PUT/DELETE easily.
     // Usually, we use POST with a hidden "action" parameter or JavaScript.
@@ -88,4 +123,3 @@ public class UserServlet extends HttpServlet {
 
      It's a safety mechanism to keep the user's browser history clean!
      */
-}
