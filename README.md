@@ -9,18 +9,6 @@ This project is organized into specific branches to show the evolution of buildi
 
 | Branch Name | Tech Stack | Data Storage | Learning Milestone |
 | :--- | :--- | :--- | :--- |
-| `ftr_java_servlets` | Servlets + JSP | ArrayList | Request/Response, JSP tags, & State management. |
-| `ftr_sevlet_jdbc_mysql` | Servlets + JDBC | MySQL | Connection strings, SQL statements, & ResultSets. |
-| `ftr_servlet_orm_hibernate` | Servlets + Hibernate | MySQL | Mapping Objects to Tables & SessionFactory. |
-| `ftr_spring_mvc_hibernate` | Spring MVC + Hibernate | MySQL | Dependency Injection & DispatcherServlet. |
-| `ftr_springboot_hibernate` | Spring Boot + Hibernate | MySQL | Fat JARs, Auto-config, & Embedded Tomcat. |
-| `ftr_springboot_jpa` | Spring Boot + JPA | MySQL | Using `EntityManager` & standard JPA annotations. |
-| `ftr_springboot_spring_data_jpa` | Spring Boot + Data JPA | MySQL | Repository Interfaces & zero-boilerplate CRUD. |
-| `ftr_springboot_rest_api` | Spring Boot + REST | MySQL | JSON responses, PathVariables, & API design. |
-
-
-| Branch Name | Tech Stack | Data Storage | Learning Milestone |
-| :--- | :--- | :--- | :--- |
 | `ftr_servlets` | Servlets + JSP | ArrayList | Request/Response, JSP tags, & State management. |
 | `ftr_sevlet_jdbc_mysql` | Servlets + JDBC | MySQL | Connection strings, SQL statements, & ResultSets. |
 | `ftr_servlet_orm_hibernate` | Servlets + Hibernate | MySQL | Native Hibernate Session management (The pioneer of ORM). |
