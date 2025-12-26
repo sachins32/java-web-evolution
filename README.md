@@ -27,7 +27,7 @@ This project is structured into branches. Each branch represents a "Level Up" in
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR_USERNAME/java-web-evolution.git](https://github.com/YOUR_USERNAME/java-web-evolution.git)
+   git clone [https://github.com/sachins32/java-web-evolution.git](https://github.com/sachins32/java-web-evolution.git)
 
 2. **Explore a specific stage: Check out the branch you are interested in to see the code changes:**
    ```bash
