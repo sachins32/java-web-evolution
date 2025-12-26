@@ -11,6 +11,7 @@ This project is structured into branches. Each branch represents a "Level Up" in
 | Branch Name | Tech Stack | Storage | Learning Milestone |
 | :--- | :--- | :--- | :--- |
 | 🟢 `ftr_servlets` | **Servlets + JSP** | `ArrayList` | Request/Response lifecycle & JSP tags. |
+| 🟣 `ftr_servlets_jstl` | **Servlets + JSTL** | `ArrayList` | JSTL core tags, formatting, and avoiding Scriptlets. |
 | 🟢 `ftr_sevlet_jdbc_mysql` | **Servlets + JDBC** | `MySQL` | Manual SQL queries & Connection pooling. |
 | 🔵 `ftr_servlet_orm_hibernate` | **Servlets + Hibernate** | `MySQL` | Native Hibernate `SessionFactory` & `Session`. |
 | 🔵 `ftr_servlet_jpa` | **Servlets + Jakarta JPA** | `MySQL` | Standardized `EntityManager` & `persistence.xml`. |
