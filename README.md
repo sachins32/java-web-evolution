@@ -1,24 +1,25 @@
-# java-web-evolution
-A comprehensive step-by-step evolution of a Java web application, tracing the journey from basic Servlets and JSP to modern Spring Boot 3.x with Spring Data JPA. This project demonstrates how abstraction layers reduce boilerplate code in enterprise Java development.
+# ☕ Java Web Evolution
+
+**Description:** A comprehensive journey from basic **Servlets/JSP** to modern **Spring Boot 3.x REST APIs**. This project demonstrates how abstraction layers reduce boilerplate code and improve maintainability in enterprise Java development.
 
 ---
 
-## 🚀 Branch Guide
+## 🛠️ Evolutionary Stages (Branch Guide)
 
-This project is organized into specific branches to show the evolution of building the java web apps. 
+This project is structured into branches. Each branch represents a "Level Up" in technology.
 
-| Branch Name | Tech Stack | Data Storage | Learning Milestone |
+| Branch Name | Tech Stack | Storage | Learning Milestone |
 | :--- | :--- | :--- | :--- |
-| `ftr_servlets` | Servlets + JSP | ArrayList | Request/Response, JSP tags, & State management. |
-| `ftr_sevlet_jdbc_mysql` | Servlets + JDBC | MySQL | Connection strings, SQL statements, & ResultSets. |
-| `ftr_servlet_orm_hibernate` | Servlets + Hibernate | MySQL | Native Hibernate Session management (The pioneer of ORM). |
-| `ftr_servlet_jpa` | Servlets + Jakarta JPA | MySQL | Transitioning to the Java Standard (JPA Specification). |
-| `ftr_spring_mvc_hibernate` | Spring MVC + Hibernate | MySQL | Dependency Injection & DispatcherServlet. |
-| `ftr_spring_mvc_jpa` | Spring MVC + JPA | MySQL |
-| `ftr_springboot_hibernate` | Spring Boot + Hibernate | MySQL | Fat JARs & Auto-configuration. |
-| `ftr_springboot_jpa` | Spring Boot + JPA | MySQL | Standardizing ORM within the Spring ecosystem. |
-| `ftr_springboot_spring_data_jpa` | Spring Boot + Data JPA | MySQL | Repository Abstraction & zero-boilerplate CRUD. |
-| `ftr_springboot_rest_api` | Spring Boot + REST | MySQL | JSON responses & API design. |
+| 🟢 `ftr_servlets` | **Servlets + JSP** | `ArrayList` | Request/Response lifecycle & JSP tags. |
+| 🟢 `ftr_sevlet_jdbc_mysql` | **Servlets + JDBC** | `MySQL` | Manual SQL queries & Connection pooling. |
+| 🔵 `ftr_servlet_orm_hibernate` | **Servlets + Hibernate** | `MySQL` | Native Hibernate `SessionFactory` & `Session`. |
+| 🔵 `ftr_servlet_jpa` | **Servlets + Jakarta JPA** | `MySQL` | Standardized `EntityManager` & `persistence.xml`. |
+| 🟡 `ftr_spring_mvc_hibernate` | **Spring MVC + Hibernate** | `MySQL` | Dependency Injection & `DispatcherServlet`. |
+| 🟡 `ftr_spring_mvc_jpa` | **Spring MVC + JPA** | `MySQL` | Pure JPA implementation within Spring MVC. |
+| 🟠 `ftr_springboot_hibernate` | **Spring Boot + Hibernate**| `MySQL` | Auto-configuration & Embedded Tomcat. |
+| 🟠 `ftr_springboot_jpa` | **Spring Boot + JPA** | `MySQL` | JPA standardization in the Spring container. |
+| 🔴 `ftr_springboot_spring_data_jpa` | **Spring Boot + Data JPA**| `MySQL` | Repository interfaces & Zero-boilerplate CRUD. |
+| 🟣 `ftr_springboot_rest_api` | **Spring Boot + REST** | `MySQL` | Stateless JSON APIs & Postman testing. |
 
 ---
 
