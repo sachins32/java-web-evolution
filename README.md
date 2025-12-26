@@ -33,13 +33,23 @@ This project is structured into branches. Each branch represents a "Level Up" in
    ```bash
    git checkout <branch_name>
 
-3. **Prerequisites:**
-   JDK: 17 or higher
-   Build Tool: Maven
-   Database: MySQL (Required for JDBC and Hibernate branches)
-   Server: Apache Tomcat 9+ (Required for non-Spring Boot branches)
+## 🛠️ Prerequisites
 
-4. **Key Observations:**
-   Frontend Shift: Transition from Server-Side Rendering (JSP) to a Stateless REST API.
-   Boilerplate Reduction: Compare the DAO implementation in the JDBC branch vs the Spring Data JPA branch.
-   Configuration Evolution: Transition from web.xml (XML-based) to Annotation-based and finally to application.properties auto-configuration.
+To run the applications in this repository, ensure you have the following installed:
+
+* **JDK:** 17 or higher
+* **Build Tool:** Maven 3.8+
+* **Database:** MySQL 8.0+ (Required for JDBC, Hibernate, and Spring branches)
+* **Server:** Apache Tomcat 10+ (Required for non-Spring Boot branches to support the `jakarta.*` namespace)
+
+---
+
+## 📝 Key Observations
+
+Throughout this project, pay close attention to the following architectural shifts:
+
+> 💡 **Frontend Shift:** Observe the transition from **Server-Side Rendering (JSP)** to a modern, **Stateless REST API** that communicates via JSON.
+>
+> 💡 **Boilerplate Reduction:** Compare the complexity of the manual DAO implementation in the `ftr_sevlet_jdbc_mysql` branch against the 1-line Repository interface in `ftr_springboot_spring_data_jpa`.
+>
+> 💡 **Configuration Evolution:** Watch the movement away from verbose `web.xml` (XML-based) files toward **Annotation-based** configuration, and finally to **Auto-configuration** via `application.properties`.
