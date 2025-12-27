@@ -72,7 +72,7 @@ From the project root, run:
 ```
 Check if the container is running by typing: 
 ```bash
-  docker ps`
+  docker ps 
 ```
 
 ### 2. IntelliJ Configuration
