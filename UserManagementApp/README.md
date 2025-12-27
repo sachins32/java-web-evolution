@@ -1,4 +1,4 @@
-# User Management App (JDBC & Docker)
+# User Management App (Servlet, JDBC, MySQL and Docker)
 
 A lightweight Java Web Application built using **Jakarta Servlet API** and **Tomcat 10**. This version officially moves the application from volatile in-memory storage to a persistent **MySQL 8.0** database, managed entirely via **Docker Compose**.
 
