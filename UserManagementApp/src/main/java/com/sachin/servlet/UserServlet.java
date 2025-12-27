@@ -1,5 +1,6 @@
 package com.sachin.servlet;
 
+import com.sachin.dao.UserDAO;
 import com.sachin.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,34 +9,31 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/users/*") // The asterisk allows us to handle /users/1, /users/delete, etc.
 public class UserServlet extends HttpServlet {
 
-    private List<User> userList = new ArrayList<>();
+    private UserDAO userDAO;
 
     @Override
     public void init() {
-        userList.add(new User(1, "Ubuntu", "linux@ubuntu.com"));
+        userDAO = new UserDAO();
     }
 
-    // 1. READ (All or Single)
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-        // For this basic version, we just forward to a display logic
+        // Fetch from Database instead of ArrayList!
+        List<User> userList = userDAO.getAllUsers();
         req.setAttribute("users", userList);
         req.getRequestDispatcher("/displayUsers.jsp").forward(req, resp);
     }
 
-    // 2. CREATE
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String name = req.getParameter("name");
         String email = req.getParameter("email");
-        int id = userList.isEmpty() ? 1 : userList.get(userList.size() - 1).getId() + 1;
-
-        userList.add(new User(id, name, email));
-        resp.sendRedirect(req.getContextPath() + "/users");
+        User user = new User(0, name, email); // ID is 0 because DB auto-increments
+        userDAO.insertUser(user);
+        resp.sendRedirect("users");
     }
 
     // This method intercepts EVERY request before doGet/doPost
@@ -57,8 +55,8 @@ public class UserServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         int id = Integer.parseInt(req.getParameter("userId"));
 
-        // Remove user from list by ID
-        userList.removeIf(user -> user.getId() == id);
+        // Call DAO instead of ArrayList removeIf
+        userDAO.removeUser(id);
 
         // Redirect back to the list
         resp.sendRedirect("users");
@@ -67,17 +65,12 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         int id = Integer.parseInt(req.getParameter("userId"));
-        String newName = req.getParameter("name");
-        String newEmail = req.getParameter("email");
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
 
-        // Find user and update
-        for (User u : userList) {
-            if (u.getId() == id) {
-                u.setName(newName);
-                u.setEmail(newEmail);
-                break;
-            }
-        }
+        // Call DAO instead of ArrayList loop
+        userDAO.updateUser(new User(id, name, email));
+
         resp.sendRedirect("users");
     }
 }
