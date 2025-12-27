@@ -1,0 +1,18 @@
+version: '3.3'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: user_management_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: user_db
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Map the local sql file to the container's init folder
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  mysql_data:
