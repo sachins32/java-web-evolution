@@ -1,74 +1,39 @@
 package com.sachin.dao;
 
 import com.sachin.model.User;
-import com.sachin.util.JPAUtil;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-
+import jakarta.persistence.PersistenceContext;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
+@Repository
+@Transactional
 public class UserDAO {
 
-    // Save User
-    public void saveUser(User user) {
-        EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        try {
-            transaction.begin();;
-            em.persist(user);
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction.isActive())
-                transaction.rollback();
-            e.printStackTrace();
-        } finally {
-            em.close();
-        }
-    }
+    @PersistenceContext
+    private EntityManager em;
 
-    // Get All Users
     public List<User> getAllUsers() {
-        try(EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager()) {
-            // JPQL
-            return em.createQuery("SELECT u FROM User u", User.class).getResultList();
-        }
+        return em.createQuery("from User", User.class).getResultList();
     }
 
-    // Update User
-    public void updateUser(User user) {
-        EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        try {
-            transaction.begin();
+    public void saveOrUpdateUser(User user) {
+        if (user.getId() == 0) {
+            // New User: Use persist
+            em.persist(user);
+        } else {
+            // Existing User: Use merge
             em.merge(user);
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction.isActive())
-                transaction.rollback();
-            e.printStackTrace();
-        } finally {
-            em.close();
         }
     }
 
-    // Delete User
-    public void removeUser(int id) {
-        EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        try {
-            transaction.begin();
-            User user = em.find(User.class, id);
-            if (user != null) {
-                em.remove(user);
-            }
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction.isActive())
-                transaction.rollback();
-            e.printStackTrace();
-        } finally {
-            em.close();
-        }
+    public User getUserById(int id) {
+        return em.find(User.class, id);
     }
 
+    public void deleteUser(int id) {
+        User u = em.find(User.class, id);
+        if (u != null) em.remove(u);
+    }
 }
