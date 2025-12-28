@@ -1,91 +1,116 @@
-# User Management App (Servlet, JDBC, MySQL and Docker)
+# User Management App (Servlet, Hibernate ORM, MySQL and Docker)
 
-A lightweight Java Web Application built using **Jakarta Servlet API** and **Tomcat 10**. This version officially moves the application from volatile in-memory storage to a persistent **MySQL 8.0** database, managed entirely via **Docker Compose**.
+A robust Java Web Application built using **Jakarta Servlet API** and **Hibernate 6**. This version evolves the application from manual JDBC strings to **Object-Relational Mapping (ORM)**, allowing Java objects to be persisted automatically to a **MySQL 8.0** database.
+
+---
 
 ## 🚀 Features
-- **Welcome Page**: A dynamic JSP interface to interact with the application.
-- **Create User (POST)**: Collects user data via forms and persists it into the MySQL database.
-- **View Users (GET)**: Uses **JSTL (`<c:forEach>`)** to fetch and display users from the database.
-- **Update User (PUT)**: Supports editing existing user details using the `_method` hidden parameter trick.
-- **Delete User (DELETE)**: Permanently removes users from the database with a confirmation prompt.
-- **Post-Redirect-Get (PRG) Pattern**: Implemented to ensure that database operations aren't duplicated on page refresh.
-- **Auto-Initialization**: Database tables are created automatically on container startup via an initialization script.
+* **Welcome Page**: A dynamic JSP interface to interact with the application.
+* **Create User (POST)**: Persists user entities using Hibernate's `session.persist()`.
+* **View Users (GET)**: Fetches data using **HQL (Hibernate Query Language)** instead of raw SQL.
+* **Update User (PUT)**: Synchronizes modified Java objects to the database using `session.merge()`.
+* **Delete User (DELETE)**: Removes persistent entities via `session.remove()`.
+* **Post-Redirect-Get (PRG) Pattern**: Ensures database operations aren't duplicated on page refresh.
+* **Automatic Schema Generation**: Hibernate automatically manages table creation and updates via the `hbm2ddl.auto` property.
+
+---
 
 ## 🛠 Tech Stack
-- **Language**: Java 17+
-- **Database**: MySQL 8.0 (The Warehouse)
-- **JDBC Driver**: MySQL Connector/J (The Translator)
-- **Specification**: Jakarta EE 10 (Servlet API 6.0, JSTL 3.0)
-- **Design Pattern**: DAO (Data Access Object)
-- **Server**: Apache Tomcat 10.1.x
-- **Build Tool**: Maven
+* **Language**: Java 17+
+* **ORM Framework**: Hibernate 6.x (Jakarta Persistence API)
+* **Database**: MySQL 8.0 (The Warehouse)
+* **Specification**: Jakarta EE 10 (Servlet API 6.0, JSTL 3.0)
+* **Design Pattern**: DAO (Data Access Object) & Singleton (HibernateUtil)
+* **Server**: Apache Tomcat 10.1.x
+* **Build Tool**: Maven
+
+
+
+---
 
 ## 📂 Project Structure
 ```text
 UserManagementApp/
-├── db/
-│   └── init.sql                   # Database schema (auto-run by Docker)
 ├── src/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/sachin/
 │   │   │       ├── model/
-│   │   │       │   └── User.java          # Data Model (POJO)
+│   │   │       │   └── User.java          # Entity with JPA Annotations
 │   │   │       ├── dao/
-│   │   │       │   └── UserDAO.java       # JDBC Database logic (CRUD)
+│   │   │       │   └── UserDAO.java       # Hibernate CRUD implementation
+│   │   │       ├── util/
+│   │   │       │   └── HibernateUtil.java # SessionFactory Singleton
 │   │   │       └── servlet/
-│   │   │           └── UserServlet.java   # Controller handling request routing
-├── docker-compose.yml             # Docker MySQL configuration
-└── pom.xml                        # Project dependencies
+│   │   │           └── UserServlet.java   # Request Routing & Controller
+│   │   └── resources/
+│   │       └── hibernate.cfg.xml          # Database & Hibernate Config
+├── docker-compose.yml                     # MySQL Container Configuration
+└── pom.xml                                # Maven Dependencies
 ```
 
 ## 🚀 Key Implementation Details
 
-### 1. Data Access Object (DAO) Pattern
-The application separates database logic from the Servlet using a `UserDAO` class. This ensures the Servlet only handles web requests while the DAO handles the "Warehouse" (MySQL).
+### 1. Object-Relational Mapping (ORM)
+The application eliminates "SQL in Java strings." Instead, we use **JPA Annotations** inside `User.java` to map objects directly to the database:
+* **@Entity**: Marks the class as a persistent database table.
+* **@Id & @GeneratedValue**: Handles the primary key and automatic ID incrementing.
+* **@Column**: Maps specific Java fields to table columns.
 
-### 2. Understanding JDBC Execution Methods
-The `UserDAO` utilizes specific JDBC methods based on the SQL operation:
 
-| Method | SQL Type | Return Value | Success Indicator |
-| :--- | :--- | :--- | :--- |
-| **`executeQuery()`** | `SELECT` | `ResultSet` | `rs.next()` is true |
-| **`executeUpdate()`** | `INSERT, UPDATE, DELETE` | `int` | Count > 0 |
-| **`execute()`** | Any / Unknown | `boolean` | `true` (Query), `false` (Update) |
 
-* **`executeQuery()`**: Opens a "cursor" to the data. Used in `selectAllUsers()`.
-* **`executeUpdate()`**: Returns the number of rows affected. If it returns `0`, no rows matched (e.g., deleting a non-existent ID).
-* **`PreparedStatement`**: Crucial for security; it sanitizes inputs to prevent **SQL Injection attacks**.
+### 2. Hibernate Session & Transaction Management
+Unlike JDBC's `Statement`, Hibernate uses a **Session** to manage the lifecycle of an object:
 
-### 3. Dockerized Infrastructure
-No manual MySQL installation is required on the host system.
-* **Service Management**: `docker-compose up -d` launches the MySQL service.
-* **Init Script**: `init.sql` is mapped to `/docker-entrypoint-initdb.d/` to ensure the table structure is ready before the app starts.
+| Method | Purpose | Standard |
+| :--- | :--- | :--- |
+| **`session.persist()`** | Saves a new entity to the database. | JPA Standard (Replaces `save`) |
+| **`session.merge()`** | Updates an existing entity. | JPA Standard (Replaces `update`) |
+| **`session.remove()`** | Deletes an entity from the database. | JPA Standard (Replaces `delete`) |
+| **`session.get()`** | Retrieves an entity by its Primary Key. | Hibernate/JPA |
+
+### 3. HQL (Hibernate Query Language)
+To fetch all users, we no longer write `SELECT * FROM users`. We use **HQL**, which is object-oriented and queries the class name rather than the table:
+
+```java
+// Logic inside UserDAO:
+return session.createQuery("from User", User.class).list();
+```
+
+This makes the application **database-independent**; Hibernate translates this HQL into the correct SQL dialect (MySQL, PostgreSQL, etc.) automatically.
+
 ---
 
 ## ⚙️ Setup Instructions (Ubuntu)
 
 ### 1. Database Setup
-From the project root, run:
+Ensure your MySQL container is running:
 ```bash
   docker-compose up -d
 ```
-Check if the container is running by typing: 
+
+Verify the container status:
+
 ```bash
-  docker ps 
+  docker ps
 ```
+### 2. Hibernate Configuration
+Ensure `src/main/resources/hibernate.cfg.xml` is configured with:
 
-### 2. IntelliJ Configuration
-1. Ensure the **Smart Tomcat** plugin is pointing to your Tomcat 10 folder.
-2. Set **Deployment Directory** to `src/main/webapp`.
-3. Set **Context Path** to `/`.
+* **`hbm2ddl.auto`**: Set to `update` to allow Hibernate to create or update your tables automatically based on your Entity classes.
+* **`dialect`**: Set to `org.hibernate.dialect.MySQLDialect` so Hibernate knows how to generate the correct SQL for your MySQL version.
 
-### 3. Running the App
-1. Start the Tomcat server via IntelliJ.
-2. Open your browser to: `http://localhost:8080`.
+
+
+### 3. IntelliJ & Running
+1. Set **Deployment Directory** to `src/main/webapp`.
+2. Set **Context Path** to `/`.
+3. Start Tomcat and visit `http://localhost:8080`.
 
 ---
 
 ## 📝 Learning Notes
-* **Persistence**: Unlike the `ArrayList` version, data is now permanent on the disk.
-* **Post-Redirect-Get (PRG)**: After an `executeUpdate(),` we redirect to a `GET` request. This keeps the browser history clean and prevents accidental duplicate entries if the user hits "Refresh."
+
+* **Boilerplate Reduction**: Hibernate removes the need for `ResultSet` iterating and manual object mapping. You no longer have to manually map database columns to Java fields.
+* **Type Safety**: By using `User.class` in queries, we get better compile-time checks and IDE auto-completion compared to raw SQL strings.
+* **Abstraction**: The DAO logic is now focused on **what** to do with the data (save, delete, update), not **how** to write the specific SQL syntax for it.
