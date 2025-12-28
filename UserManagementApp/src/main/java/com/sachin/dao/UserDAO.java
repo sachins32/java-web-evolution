@@ -1,10 +1,9 @@
 package com.sachin.dao;
 
 import com.sachin.model.User;
-import com.sachin.util.HibernateUtil;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import com.sachin.util.JPAUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
 import java.util.List;
 
@@ -12,58 +11,63 @@ public class UserDAO {
 
     // Save User
     public void saveUser(User user) {
-        Transaction transaction = null;
+        EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
         try {
-            SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-            Session session = sessionFactory.openSession();
-            transaction = session.beginTransaction();
-            session.persist(user); // Hibernate handles the INSERT SQL
-            // session.save(); this is deprecated
+            transaction.begin();;
+            em.persist(user);
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
+            if (transaction.isActive())
                 transaction.rollback();
-                e.printStackTrace();
-            }
+            e.printStackTrace();
+        } finally {
+            em.close();
         }
     }
 
     // Get All Users
     public List<User> getAllUsers() {
-        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-            // HQL uses Class names (User) not table names (users)
-            return session.createQuery("from User", User.class).list();
+        try(EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager()) {
+            // JPQL
+            return em.createQuery("SELECT u FROM User u", User.class).getResultList();
         }
     }
 
     // Update User
     public void updateUser(User user) {
-        Transaction transaction = null;
-        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-            transaction = session.beginTransaction();
-            session.merge(user); // Hibernate handles the UPDATE SQL
+        EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            em.merge(user);
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null)
+            if (transaction.isActive())
                 transaction.rollback();
             e.printStackTrace();
+        } finally {
+            em.close();
         }
     }
 
     // Delete User
     public void removeUser(int id) {
-        Transaction transaction = null;
-        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-            transaction = session.beginTransaction();
-            User user = session.get(User.class, id);
+        EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            User user = em.find(User.class, id);
             if (user != null) {
-                session.remove(user); // Hibernate handles the DELETE SQL
+                em.remove(user);
             }
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null)
+            if (transaction.isActive())
                 transaction.rollback();
             e.printStackTrace();
+        } finally {
+            em.close();
         }
     }
 
