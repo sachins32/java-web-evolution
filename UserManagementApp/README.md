@@ -1,34 +1,41 @@
-# User Management App (Servlet, Hibernate ORM, MySQL and Docker)
+# User Management App (Servlet, JPA Standard, MySQL and Docker)
 
-A robust Java Web Application built using **Jakarta Servlet API** and **Hibernate 6**. This version evolves the application from manual JDBC strings to **Object-Relational Mapping (ORM)**, allowing Java objects to be persisted automatically to a **MySQL 8.0** database.
+A robust Java Web Application built using **Jakarta Servlet API** and **Jakarta Persistence API (JPA) 3.0**. This version migrates the application from Hibernate-specific APIs to the standardized **JPA Specification**. By using the `EntityManager`, the application becomes provider-agnostic while still leveraging **Hibernate 6** as the underlying persistence provider.
+
+
 
 ---
 
 ## 🚀 Features
+* **Standardized Persistence**: Uses `EntityManager` and `EntityTransaction` instead of Hibernate-specific Sessions.
 * **Welcome Page**: A dynamic JSP interface to interact with the application.
-* **Create User (POST)**: Persists user entities using Hibernate's `session.persist()`.
-* **View Users (GET)**: Fetches data using **HQL (Hibernate Query Language)** instead of raw SQL.
-* **Update User (PUT)**: Synchronizes modified Java objects to the database using `session.merge()`.
-* **Delete User (DELETE)**: Removes persistent entities via `session.remove()`.
-* **Post-Redirect-Get (PRG) Pattern**: Ensures database operations aren't duplicated on page refresh.
-* **Automatic Schema Generation**: Hibernate automatically manages table creation and updates via the `hbm2ddl.auto` property.
+* **Create User (POST)**: Persists user entities using the standardized `em.persist()`.
+* **View Users (GET)**: Fetches data using **JPQL (Java Persistence Query Language)**.
+* **Update User (PUT)**: Synchronizes modified Java objects to the database using `em.merge()`.
+* **Delete User (DELETE)**: Removes persistent entities via `em.remove()`.
+* **Standardized Configuration**: Centralized management via `persistence.xml` in the `META-INF` directory.
+* **Automatic Schema Generation**: Managed via the `jakarta.persistence.schema-generation` property.
 
 ---
 
 ## 🛠 Tech Stack
 * **Language**: Java 17+
-* **ORM Framework**: Hibernate 6.x (Jakarta Persistence API)
-* **Database**: MySQL 8.0 (The Warehouse)
+* **Specification**: Jakarta Persistence API (JPA) 3.1
+* **ORM Provider**: Hibernate 6.x (Implementation Provider)
+* **Database**: MySQL 8.0
 * **Specification**: Jakarta EE 10 (Servlet API 6.0, JSTL 3.0)
-* **Design Pattern**: DAO (Data Access Object) & Singleton (HibernateUtil)
+* **Design Pattern**: DAO (Data Access Object) & Singleton (JPAUtil)
 * **Server**: Apache Tomcat 10.1.x
 * **Build Tool**: Maven
-
-
 
 ---
 
 ## 📂 Project Structure
+
+In the `ftr_servlet_jpa` branch, the project follows the standard Maven directory layout with the addition of the mandatory `META-INF` folder for JPA configuration.
+
+
+
 ```text
 UserManagementApp/
 ├── src/
@@ -38,79 +45,57 @@ UserManagementApp/
 │   │   │       ├── model/
 │   │   │       │   └── User.java          # Entity with JPA Annotations
 │   │   │       ├── dao/
-│   │   │       │   └── UserDAO.java       # Hibernate CRUD implementation
+│   │   │       │   └── UserDAO.java       # JPA EntityManager CRUD implementation
 │   │   │       ├── util/
-│   │   │       │   └── HibernateUtil.java # SessionFactory Singleton
+│   │   │       │   └── JPAUtil.java       # EntityManagerFactory Singleton
 │   │   │       └── servlet/
 │   │   │           └── UserServlet.java   # Request Routing & Controller
 │   │   └── resources/
-│   │       └── hibernate.cfg.xml          # Database & Hibernate Config
-├── docker-compose.yml                     # MySQL Container Configuration
-└── pom.xml                                # Maven Dependencies
+│   │       └── META-INF/
+│   │           └── persistence.xml        # Standard JPA Configuration (Mandatory)
+├── docker-compose.yml                     # MySQL 8.0 Container Configuration
+└── pom.xml                                # Maven dependencies (Hibernate 6 + Servlet 6)
 ```
 
 ## 🚀 Key Implementation Details
 
-### 1. Object-Relational Mapping (ORM)
-The application eliminates "SQL in Java strings." Instead, we use **JPA Annotations** inside `User.java` to map objects directly to the database:
-* **@Entity**: Marks the class as a persistent database table.
-* **@Id & @GeneratedValue**: Handles the primary key and automatic ID incrementing.
-* **@Column**: Maps specific Java fields to table columns.
+### 1. The Standardized Entry Point (persistence.xml)
+JPA shifts configuration from `hibernate.cfg.xml` to a standardized `persistence.xml`. This file defines the **Persistence Unit**, which acts as the core configuration for database connectivity and provider settings.
 
 
 
-### 2. Hibernate Session & Transaction Management
-Unlike JDBC's `Statement`, Hibernate uses a **Session** to manage the lifecycle of an object:
+### 2. EntityManager & Transaction Management
+We replace the Hibernate Session with the JPA **EntityManager**. This is the standard "unit of work" for Jakarta EE applications.
 
-| Method | Purpose | Standard |
+| Method | Purpose | Specification |
 | :--- | :--- | :--- |
-| **`session.persist()`** | Saves a new entity to the database. | JPA Standard (Replaces `save`) |
-| **`session.merge()`** | Updates an existing entity. | JPA Standard (Replaces `update`) |
-| **`session.remove()`** | Deletes an entity from the database. | JPA Standard (Replaces `delete`) |
-| **`session.get()`** | Retrieves an entity by its Primary Key. | Hibernate/JPA |
+| **`em.persist()`** | Makes an instance managed and persistent. | Jakarta Persistence |
+| **`em.merge()`** | Merges the state of the given entity into the current persistence context. | Jakarta Persistence |
+| **`em.remove()`** | Removes the entity instance. | Jakarta Persistence |
+| **`em.find()`** | Finds by primary key. (Replaces `session.get`) | Jakarta Persistence |
 
-### 3. HQL (Hibernate Query Language)
-To fetch all users, we no longer write `SELECT * FROM users`. We use **HQL**, which is object-oriented and queries the class name rather than the table:
+
+
+### 3. JPQL (Java Persistence Query Language)
+We use **JPQL**, the standardized version of HQL. While similar, JPQL strictly follows the Jakarta specification, ensuring that queries like `SELECT u FROM User u` remain consistent across different ORM providers.
 
 ```java
-// Logic inside UserDAO:
-return session.createQuery("from User", User.class).list();
+// Logic inside UserDAO using EntityManager:
+return em.createQuery("SELECT u FROM User u", User.class).getResultList();
 ```
 
-This makes the application **database-independent**; Hibernate translates this HQL into the correct SQL dialect (MySQL, PostgreSQL, etc.) automatically.
+### 2. JPA Configuration
+The configuration file **must** be placed in `src/main/resources/META-INF/persistence.xml`. Key properties include:
 
----
-
-## ⚙️ Setup Instructions (Ubuntu)
-
-### 1. Database Setup
-Ensure your MySQL container is running:
-```bash
-  docker-compose up -d
-```
-
-Verify the container status:
-
-```bash
-  docker ps
-```
-### 2. Hibernate Configuration
-Ensure `src/main/resources/hibernate.cfg.xml` is configured with:
-
-* **`hbm2ddl.auto`**: Set to `update` to allow Hibernate to create or update your tables automatically based on your Entity classes.
-* **`dialect`**: Set to `org.hibernate.dialect.MySQLDialect` so Hibernate knows how to generate the correct SQL for your MySQL version.
+* **`jakarta.persistence.schema-generation.database.action`**: Set to `update` to manage schema automatically.
+* **`hibernate.dialect`**: Still required to tell the provider (Hibernate) how to talk to MySQL.
 
 
-
-### 3. IntelliJ & Running
-1. Set **Deployment Directory** to `src/main/webapp`.
-2. Set **Context Path** to `/`.
-3. Start Tomcat and visit `http://localhost:8080`.
 
 ---
 
 ## 📝 Learning Notes
 
-* **Boilerplate Reduction**: Hibernate removes the need for `ResultSet` iterating and manual object mapping. You no longer have to manually map database columns to Java fields.
-* **Type Safety**: By using `User.class` in queries, we get better compile-time checks and IDE auto-completion compared to raw SQL strings.
-* **Abstraction**: The DAO logic is now focused on **what** to do with the data (save, delete, update), not **how** to write the specific SQL syntax for it.
+* **Specification vs Implementation**: By using JPA (`jakarta.persistence.*`), we write code against a standard interface. Hibernate is simply the engine under the hood.
+* **Explicit Management**: The `EntityManager` lifecycle is strictly defined. We use `JPAUtil` to provide a single `EntityManagerFactory`, which is a heavy-weight object used to spawn `EntityManager` instances for each request.
+* **Future-Proofing**: This migration makes the app "Cloud Native" ready, as most enterprise Java frameworks (like Spring Data JPA or Quarkus) rely on the JPA standard rather than direct Hibernate calls.
