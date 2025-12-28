@@ -32,7 +32,7 @@ public class UserServlet extends HttpServlet {
         String name = req.getParameter("name");
         String email = req.getParameter("email");
         User user = new User(0, name, email); // ID is 0 because DB auto-increments
-        userDAO.insertUser(user);
+        userDAO.saveUser(user);
         resp.sendRedirect("users");
     }
 

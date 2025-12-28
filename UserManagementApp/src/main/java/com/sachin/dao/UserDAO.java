@@ -1,83 +1,70 @@
 package com.sachin.dao;
 
 import com.sachin.model.User;
+import com.sachin.util.HibernateUtil;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAO {
-    private String jdbcURL = "jdbc:mysql://localhost:3306/user_db";
-    private String jdbcUsername = "root"; // we can name mysqlUsername but to keep it generic, it is named as jdbcUsername, not coupling it to specific db
-    private String jdbcPassword = "password";
 
-    // SELECT ALL
-    public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        String sqlQuery = "SELECT * FROM users";
-        try (Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
-            ResultSet rs = preparedStatement.executeQuery();
-            while (rs.next()) {
-                users.add(new User(rs.getInt("id"), rs.getString("name"), rs.getString("email")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
-    }
-
-    // INSERT
-    public void insertUser(User user) {
-        String sqlQuery = "INSERT INTO users (name, email) VALUES (?, ?)";
-        try(Connection connection = getConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sqlQuery);
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getEmail());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // UPDATE
-    public boolean updateUser(User user) {
-        String sqlQuery = "UPDATE users SET name = ?, email = ? WHERE id = ?";
-        boolean rowUpdated = false;
-        try(Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
-            preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, user.getEmail());
-            preparedStatement.setInt(3, user.getId());
-            rowUpdated = preparedStatement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return rowUpdated;
-    }
-
-    // DELETE
-    public boolean removeUser(int id) {
-        String sqlQuery = "DELETE from users where id = ?";
-        boolean rowDeleted = false;
-        try(Connection connection = getConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sqlQuery);
-            ps.setInt(1, id);
-            rowDeleted = ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return rowDeleted;
-    }
-
-    private Connection getConnection() {
-        Connection connection = null;
+    // Save User
+    public void saveUser(User user) {
+        Transaction transaction = null;
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(jdbcURL, jdbcUsername, jdbcPassword);
-        } catch (SQLException | ClassNotFoundException e) {
+            SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+            Session session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
+            session.persist(user); // Hibernate handles the INSERT SQL
+            // session.save(); this is deprecated
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Get All Users
+    public List<User> getAllUsers() {
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // HQL uses Class names (User) not table names (users)
+            return session.createQuery("from User", User.class).list();
+        }
+    }
+
+    // Update User
+    public void updateUser(User user) {
+        Transaction transaction = null;
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.merge(user); // Hibernate handles the UPDATE SQL
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null)
+                transaction.rollback();
             e.printStackTrace();
         }
-        return connection;
     }
+
+    // Delete User
+    public void removeUser(int id) {
+        Transaction transaction = null;
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            User user = session.get(User.class, id);
+            if (user != null) {
+                session.remove(user); // Hibernate handles the DELETE SQL
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null)
+                transaction.rollback();
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -1,9 +1,23 @@
 package com.sachin.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "email")
     private String email;
+
+    // Hibernate requires a no-arg constructor
+    public User() {}
 
     public User(int id, String name, String email) {
         this.id = id;
