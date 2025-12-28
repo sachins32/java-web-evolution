@@ -15,8 +15,7 @@ This project is structured into branches. Each branch represents a "Level Up" in
 | 🟢 `ftr_sevlet_jdbc_mysql` | **Servlets + JDBC** | `MySQL` | Manual SQL queries & Connection pooling. |
 | 🔵 `ftr_servlet_orm_hibernate` | **Servlets + Hibernate** | `MySQL` | Native Hibernate `SessionFactory` & `Session`. |
 | 🔵 `ftr_servlet_jpa` | **Servlets + Jakarta JPA** | `MySQL` | Standardized `EntityManager` & `persistence.xml`. |
-| 🟡 `ftr_spring_mvc_hibernate` | **Spring MVC + Hibernate** | `MySQL` | Dependency Injection & `DispatcherServlet`. |
-| 🟡 `ftr_spring_mvc_jpa` | **Spring MVC + JPA** | `MySQL` | Pure JPA implementation within Spring MVC. |
+| 🟡 `ftr_spring_mvc_jpa` | **Spring MVC + JPA** | `MySQL` | Dependency Injection & `DispatcherServlet` & Pure JPA implementation within Spring MVC. |
 | 🟠 `ftr_springboot_hibernate` | **Spring Boot + Hibernate**| `MySQL` | Auto-configuration & Embedded Tomcat. |
 | 🟠 `ftr_springboot_jpa` | **Spring Boot + JPA** | `MySQL` | JPA standardization in the Spring container. |
 | 🔴 `ftr_springboot_spring_data_jpa` | **Spring Boot + Data JPA**| `MySQL` | Repository interfaces & Zero-boilerplate CRUD. |
