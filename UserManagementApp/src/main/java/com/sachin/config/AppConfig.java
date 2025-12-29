@@ -7,9 +7,7 @@ import org.springframework.orm.jpa.*;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -19,14 +17,6 @@ import java.util.Properties;
 @EnableTransactionManagement
 @ComponentScan(basePackages = "com.sachin")
 public class AppConfig implements WebMvcConfigurer {
-
-    @Bean
-    public ViewResolver viewResolver() {
-        InternalResourceViewResolver bean = new InternalResourceViewResolver();
-        bean.setPrefix("/WEB-INF/views/");
-        bean.setSuffix(".jsp");
-        return bean;
-    }
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
