@@ -1,30 +1,27 @@
-# User Management App (Servlet, JPA Standard, MySQL and Docker)
+# User Management App (Spring MVC, JPA, MySQL and Docker)
 
-A robust Java Web Application built using **Jakarta Servlet API** and **Jakarta Persistence API (JPA) 3.0**. This version migrates the application from Hibernate-specific APIs to the standardized **JPA Specification**. By using the `EntityManager`, the application becomes provider-agnostic while still leveraging **Hibernate 6** as the underlying persistence provider.
+A modern Java Web Application migrated to the **Spring Framework 6**. This version replaces the manual boilerplate of Jakarta Servlets with **Spring MVC** and utilizes **Spring ORM** to manage the Jakarta Persistence API (JPA) lifecycle. The application is now fully configured via Java (**Zero-XML**), removing the need for `web.xml` and `persistence.xml`.
 
 
 
 ---
 
 ## 🚀 Features
-* **Standardized Persistence**: Uses `EntityManager` and `EntityTransaction` instead of Hibernate-specific Sessions.
-* **Welcome Page**: A dynamic JSP interface to interact with the application.
-* **Create User (POST)**: Persists user entities using the standardized `em.persist()`.
-* **View Users (GET)**: Fetches data using **JPQL (Java Persistence Query Language)**.
-* **Update User (PUT)**: Synchronizes modified Java objects to the database using `em.merge()`.
-* **Delete User (DELETE)**: Removes persistent entities via `em.remove()`.
-* **Standardized Configuration**: Centralized management via `persistence.xml` in the `META-INF` directory.
-* **Automatic Schema Generation**: Managed via the `jakarta.persistence.schema-generation` property.
+* **Zero-XML Configuration**: Fully Java-based configuration using `@Configuration`, `@EnableWebMvc`, and `AbstractAnnotationConfigDispatcherServletInitializer`.
+* **Annotation-Driven Development**: Uses `@Controller`, `@Service`, and `@Repository` for a clean, layered architecture.
+* **Spring Managed Transactions**: Replaces manual `em.getTransaction().begin()` with the declarative `@Transactional` annotation.
+* **Unified Data Binding**: Leverages `@ModelAttribute` and Spring Form Tags for automatic mapping of HTML form data to Java objects (POJOs).
+* **Centralized View Management**: Uses `InternalResourceViewResolver` to securely manage JSPs within the `WEB-INF/views/` directory.
+* **Declarative Persistence**: Database connection and `EntityManagerFactory` are managed as Spring Beans in `AppConfig.java`.
 
 ---
 
 ## 🛠 Tech Stack
-* **Language**: Java 17+
+* **Framework**: Spring Framework 6.x (Spring MVC, Spring ORM, Spring TX)
 * **Specification**: Jakarta Persistence API (JPA) 3.1
-* **ORM Provider**: Hibernate 6.x (Implementation Provider)
+* **ORM Provider**: Hibernate 6.x
 * **Database**: MySQL 8.0
-* **Specification**: Jakarta EE 10 (Servlet API 6.0, JSTL 3.0)
-* **Design Pattern**: DAO (Data Access Object) & Singleton (JPAUtil)
+* **View Technology**: JSP (Jakarta Standard Tag Library 3.0)
 * **Server**: Apache Tomcat 10.1.x
 * **Build Tool**: Maven
 
@@ -32,9 +29,7 @@ A robust Java Web Application built using **Jakarta Servlet API** and **Jakarta 
 
 ## 📂 Project Structure
 
-In the `ftr_servlet_jpa` branch, the project follows the standard Maven directory layout with the addition of the mandatory `META-INF` folder for JPA configuration.
-
-
+This branch follows the "Zero-XML" approach. Configuration files previously located in `META-INF` or `WEB-INF` have been moved to Java classes.
 
 ```text
 UserManagementApp/
@@ -42,60 +37,77 @@ UserManagementApp/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/sachin/
-│   │   │       ├── model/
-│   │   │       │   └── User.java          # Entity with JPA Annotations
+│   │   │       ├── config/
+│   │   │       │   ├── AppConfig.java          # Database & View Config (Replaces persistence.xml)
+│   │   │       │   └── WebAppInitializer.java    # Servlet Config (Replaces web.xml)
+│   │   │       ├── controller/
+│   │   │       │   └── UserController.java     # Spring MVC Controller (Replaces UserServlet)
 │   │   │       ├── dao/
-│   │   │       │   └── UserDAO.java       # JPA EntityManager CRUD implementation
-│   │   │       ├── util/
-│   │   │       │   └── JPAUtil.java       # EntityManagerFactory Singleton
-│   │   │       └── servlet/
-│   │   │           └── UserServlet.java   # Request Routing & Controller
-│   │   └── resources/
-│   │       └── META-INF/
-│   │           └── persistence.xml        # Standard JPA Configuration (Mandatory)
-├── docker-compose.yml                     # MySQL 8.0 Container Configuration
-└── pom.xml                                # Maven dependencies (Hibernate 6 + Servlet 6)
+│   │   │       │   └── UserDAO.java            # @Repository with @PersistenceContext
+│   │   │       └── model/
+│   │   │           └── User.java               # JPA Entity
+│   │   └── webapp/
+│   │       └── WEB-INF/
+│   │           └── views/
+│   │               ├── displayUsers.jsp        # Modernized CSS User List
+│   │               └── userForm.jsp            # Dynamic Spring Form
+├── docker-compose.yml                          # MySQL 8.0 Container
+└── pom.xml                                     # Spring 6 + Hibernate 6 Dependencies
 ```
 
 ## 🚀 Key Implementation Details
 
-### 1. The Standardized Entry Point (persistence.xml)
-JPA shifts configuration from `hibernate.cfg.xml` to a standardized `persistence.xml`. This file defines the **Persistence Unit**, which acts as the core configuration for database connectivity and provider settings.
+### 1. Dependency Injection & Persistence
+In the previous architecture, we relied on a manual `JPAUtil` singleton to manage the `EntityManagerFactory`. In this Spring-based version, we utilize **Dependency Injection**. Spring injects the `EntityManager` directly into the DAO using the `@PersistenceContext` annotation. This decouples the DAO from the lifecycle management and ensures thread-safe operations within the persistence context.
 
 
 
-### 2. EntityManager & Transaction Management
-We replace the Hibernate Session with the JPA **EntityManager**. This is the standard "unit of work" for Jakarta EE applications.
+### 2. Transaction Management
+Manual transaction handling (`begin`, `commit`, `rollback`) has been entirely removed from the business logic. By adding `@EnableTransactionManagement` to the configuration and annotating DAO methods with **`@Transactional`**, Spring handles the transaction lifecycle via AOP (Aspect-Oriented Programming).
 
-| Method | Purpose | Specification |
+| Operation | Manual JPA (Previous) | Spring MVC (Current) |
 | :--- | :--- | :--- |
-| **`em.persist()`** | Makes an instance managed and persistent. | Jakarta Persistence |
-| **`em.merge()`** | Merges the state of the given entity into the current persistence context. | Jakarta Persistence |
-| **`em.remove()`** | Removes the entity instance. | Jakarta Persistence |
-| **`em.find()`** | Finds by primary key. (Replaces `session.get`) | Jakarta Persistence |
+| **Start Transaction** | `em.getTransaction().begin()` | **`@Transactional`** |
+| **Persist Data** | `em.persist(user)` | `em.persist(user)` |
+| **End Transaction** | `em.getTransaction().commit()` | **(Automatic)** |
 
 
 
-### 3. JPQL (Java Persistence Query Language)
-We use **JPQL**, the standardized version of HQL. While similar, JPQL strictly follows the Jakarta specification, ensuring that queries like `SELECT u FROM User u` remain consistent across different ORM providers.
+### 3. Data Binding & Form Handling
+Using Spring’s `<form:form>` tag library enables **two-way data binding**. This is a significant improvement over manual request parameter parsing. It ensures that the `id` of a user is correctly preserved during an edit operation via a hidden field, which prevents Hibernate from attempting a new insert (and thus preventing `Duplicate Entry` errors).
 
-```java
-// Logic inside UserDAO using EntityManager:
-return em.createQuery("SELECT u FROM User u", User.class).getResultList();
+```jsp
+<%-- Spring Form Tag Library Implementation --%>
+<form:form action="save" modelAttribute="user" method="POST">
+    <form:hidden path="id" /> 
+    
+    <label>User Name:</label>
+    <form:input path="name" />
+    
+    <form:button>Submit</form:button>
+</form:form>
 ```
-
-### 2. JPA Configuration
-The configuration file **must** be placed in `src/main/resources/META-INF/persistence.xml`. Key properties include:
-
-* **`jakarta.persistence.schema-generation.database.action`**: Set to `update` to manage schema automatically.
-* **`hibernate.dialect`**: Still required to tell the provider (Hibernate) how to talk to MySQL.
-
-
-
----
 
 ## 📝 Learning Notes
 
-* **Specification vs Implementation**: By using JPA (`jakarta.persistence.*`), we write code against a standard interface. Hibernate is simply the engine under the hood.
-* **Explicit Management**: The `EntityManager` lifecycle is strictly defined. We use `JPAUtil` to provide a single `EntityManagerFactory`, which is a heavy-weight object used to spawn `EntityManager` instances for each request.
-* **Future-Proofing**: This migration makes the app "Cloud Native" ready, as most enterprise Java frameworks (like Spring Data JPA or Quarkus) rely on the JPA standard rather than direct Hibernate calls.
+This migration provided key insights into how modern frameworks manage application complexity through design patterns and standardized namespaces.
+
+* **Inversion of Control (IoC):** The developer is no longer responsible for the manual instantiation of `UserDAO` or the `EntityManager`. Spring’s IoC container manages the entire object lifecycle—creation, dependency injection, and destruction.
+* **Front Controller Pattern:** The `DispatcherServlet` serves as the centralized entry point for all requests. It eliminates the need for multiple Servlets by routing traffic to specific methods in the `UserController` based on `@GetMapping` or `@PostMapping` annotations.
+
+
+
+* **Jakarta Namespace:** To ensure compatibility with **Tomcat 10+**, the project fully utilizes the `jakarta.*` namespace for Servlets, Persistence (JPA), and JSTL tags, successfully moving away from the legacy `javax.*` namespace.
+* **Data Integrity:** This branch highlighted the critical role of **JavaBean naming conventions**. Proper setter methods (e.g., `setId`) are essential for Spring's `DataBinder` to correctly map HTML form data back to persistent database entities during update operations.
+
+---
+
+## 📖 How to Run
+
+Follow these steps to deploy the application locally:
+
+### 1. Start the Database
+Ensure Docker is running and start the MySQL container:
+```bash
+  docker-compose up -d
+```
